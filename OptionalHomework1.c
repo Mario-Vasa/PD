@@ -3,6 +3,12 @@
 PVOID g_NonPaged = NULL;
 PVOID g_Paged = NULL;
 
+// Observații:
+// Tipuri de memorie folosite: NonPagedPool, PagedPool
+// Accesarea PagedPool la IRQL = DISPATCH_LEVEL produce BSOD
+// Motiv: la acest nivel nu sunt permise page faults
+// NonPagedPool este necesară deoarece poate fi accesată la orice IRQL și rămâne permanent în RAM
+
 VOID DriverUnload(PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
@@ -50,7 +56,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
     if (g_Paged)
     {
-        volatile UCHAR val = *((UCHAR*)g_Paged); // acces invalid posibil
+        volatile UCHAR val = *((UCHAR*)g_Paged); // ⚠ acces invalid posibil → BSOD
         UNREFERENCED_PARAMETER(val);
     }
 
